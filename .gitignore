@@ -1,0 +1,8 @@
+graphviz-0.11.1/
+*.whl
+.vscode/
+.pydevproject
+ESTRUCTURAS/__pycache__/
+.project
+ESTRUCTURAS/pruebasnadmas.py
+.settings/
