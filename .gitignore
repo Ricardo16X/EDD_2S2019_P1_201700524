@@ -2,8 +2,10 @@ graphviz-0.11.1/
 *.whl
 .vscode/
 .pydevproject
-ESTRUCTURAS/__pycache__/
+SNAKE/__pycache__/
 .project
-ESTRUCTURAS/pruebasnadmas.py
+SNAKE/pruebasnadmas.py
 .settings/
 FETCH_HEAD
+__init__.py
+SNAKE/__init__.py
