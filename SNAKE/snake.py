@@ -14,17 +14,17 @@ menu = ['1. Jugar', '2. Tabla de Punteo', '3. Selección Usuario', '4. Reportes'
 nuevaPila = Pila.Pila()
 nuevaCola = Cola.Cola()
 usuarios = CircularDobleEnlazada.CDEnlazada()
-serpiente = EnlazadaDoble.listaDE()
 ## Aqui funcionará el juego
 def pintarJuego(stdscr, nombreUsuario):
     if nombreUsuario is "":
         registrarUsuario(stdscr)
     else:
+        serpiente = EnlazadaDoble.listaDE()
         stdscr.clear()
-        stdscr.nodelay(1)
-        stdscr.timeout(150)
+        velocidad = 150
         punteo = 0
         nivel = 1
+        stdscr.timeout(velocidad)
         alto, ancho = stdscr.getmaxyx()
         stdscr.addstr(1,25 - len("Puntaje"),"Puntaje = " + str(punteo))
         stdscr.addstr(1,50 - len("Nivel"),"Nivel = " + str(nivel))
@@ -49,17 +49,22 @@ def pintarJuego(stdscr, nombreUsuario):
             temporalSerpiente = temporalSerpiente.siguiente
             stdscr.addstr(int(str(temporalSerpiente.cY)), int(str(temporalSerpiente.cX)), "#")
         stdscr.refresh()
+        # Bucle del Juego
+        colision_sinComida = False
+        Pausa = False
         while True:
+            if punteo % 15 == 0 and punteo > 0:
+                nivel += 1
+                velocidad -= 50
+                stdscr.timeout(velocidad)
             temporal = serpiente.ancla.siguiente
             tempCX = 0
             tempCY = 0
 
             if key > 0:
                 keyAnterior = key
-                print(keyAnterior)
             
             key = stdscr.getch()
-            print(key)
             #He creado esta restricción, ya que no se me ocurre como voltear a la serpiente
             # cuando esta sea muy larga y tenga muchos dobleces
             if key in [curses.KEY_UP, 450] and (keyAnterior in [curses.KEY_DOWN, 456]):
@@ -74,17 +79,26 @@ def pintarJuego(stdscr, nombreUsuario):
             stdscr.clear()
             if key in [curses.KEY_UP, curses.KEY_DOWN, curses.KEY_LEFT, curses.KEY_RIGHT] or key in [450, 456, 452, 454]:
                 direccion = key
+            elif key in [curses.KEY_ABORT, 27]:
+                #Boton de Pausa
+                if Pausa is False:
+                    Pausa = True
+                else:
+                    Pausa = False
             
             if temporal.cX == randomX and temporal.cY == randomY:
-                print(comidita)
+                #################################
                 if comidita is "+":
                     serpiente.insertar(0,0)
+                    colision_sinComida = False
                     punteo += 1
-                else:
+                elif comidita is "*":
                     serpiente.eliminar()
+                    colision_sinComida = False
+                    serpiente.actualizar(temporal.cX,temporal.cY)
                     if punteo > 0:
                         punteo -= 1
-
+                #################################
                 randomX = randint(3, ancho - 4)
                 randomY = randint(3, alto - 3)
                 crecer_o_disminuir = randint(0,10)
@@ -97,49 +111,73 @@ def pintarJuego(stdscr, nombreUsuario):
                     stdscr.addstr(randomY, randomX, comidita)
             else:
                 stdscr.addstr(randomY, randomX, comidita)
-
-            if direccion in [curses.KEY_UP, 450]:
-                tempCX = temporal.cX
-                tempCY = temporal.cY
-                temporal.cY -= 1
-                if temporal.cY <= 2:
-                    tempCY = alto - 3
-                    serpiente.actualizar(tempCX,tempCY)
-            elif direccion in [curses.KEY_DOWN, 456]:
-                tempCX = temporal.cX
-                tempCY = temporal.cY
-                temporal.cY += 1
-                if temporal.cY >= alto - 2:
-                    tempCY = 3
-                    serpiente.actualizar(tempCX,tempCY)
-            elif direccion in [curses.KEY_LEFT, 452]:
-                tempCX = temporal.cX
-                tempCY = temporal.cY
-                temporal.cX -= 1
-                if temporal.cX <= 2:
-                    tempCX = ancho - 5
-                    serpiente.actualizar(tempCX,tempCY)
-            elif direccion in [curses.KEY_RIGHT, 454]:
-                tempCX = temporal.cX
-                tempCY = temporal.cY
-                temporal.cX += 1
-                if temporal.cX >= ancho - 4:
-                    tempCX = 3
-                    serpiente.actualizar(tempCX,tempCY)
-            serpiente.actualizar(tempCX,tempCY)
             
-            alto, ancho = stdscr.getmaxyx()
-            stdscr.addstr(1,25 - len("Puntaje"),"Puntaje = " + str(punteo))
-            stdscr.addstr(1,50 - len("Nivel"),"Nivel = " + str(nivel))
-            stdscr.addstr(1,75 - len("Usuario"),"Usuario = " + str(nombreUsuario))
-            stdscr.border(0)
-            textpad.rectangle(stdscr, 2, 2, alto - 2, ancho - 3)
-            while temporal is not None:
-                stdscr.addstr(int(str(temporal.cY)), int(str(temporal.cX)), str(temporal.char))
-                temporal = temporal.siguiente
-            stdscr.refresh()
-            
+            if Pausa is False:
+                if direccion in [curses.KEY_UP, 450]:
+                    # Lo que haré aquí será atravesar la pared
+                    # por medio de la cabeza del snake
+                    if temporal.cY <= 2:
+                        temporal.cY = alto-3
+                    else:
+                        tempCX = temporal.cX
+                        tempCY = temporal.cY
+                        temporal.cY -= 1
+                elif direccion in [curses.KEY_DOWN, 456]:
+                    if temporal.cY >= alto - 2:
+                        temporal.cY = 3
+                    else:
+                        tempCX = temporal.cX
+                        tempCY = temporal.cY
+                        temporal.cY += 1    
+                elif direccion in [curses.KEY_LEFT, 452]:
+                    if temporal.cX <= 2:
+                        temporal.cX = ancho - 4
+                    else:
+                        tempCX = temporal.cX
+                        tempCY = temporal.cY
+                        temporal.cX -= 1
+                elif direccion in [curses.KEY_RIGHT, 454]:
+                    if temporal.cX >= ancho - 4:
+                        temporal.cX = 3
+                    else:
+                        tempCX = temporal.cX
+                        tempCY = temporal.cY
+                        temporal.cX += 1
+                serpiente.actualizar(tempCX,tempCY)
+                
+                if colision_sinComida == False:
+                    alto, ancho = stdscr.getmaxyx()
+                    stdscr.addstr(1,25 - len("Puntaje"),"Puntaje = " + str(punteo))
+                    stdscr.addstr(1,50 - len("Nivel"),"Nivel = " + str(nivel))
+                    stdscr.addstr(1,75 - len("Usuario"),"Usuario = " + str(nombreUsuario))
+                    stdscr.border(0)
+                    textpad.rectangle(stdscr, 2, 2, alto - 2, ancho - 3)
+                    while temporal is not None:
+                        stdscr.addstr(int(str(temporal.cY)), int(str(temporal.cX)), str(temporal.char))
+                        temporal = temporal.siguiente
+                    stdscr.refresh()
+                    colision_sinComida = serpiente.colision(True)
+                else:
+                    serpiente.generarReporte()
+                    serpiente.cantidad = 0
+                    punteo = 0
+                    serpiente.vaciarSerpiente()
+                    stdscr.clear()
+                    stdscr.timeout(-1)
+                    alto, ancho = stdscr.getmaxyx()
+                    stdscr.addstr(alto//2, ancho//2 - len("GAME OVER"), "GAME OVER")
+                    stdscr.addstr(alto//2 + 1, ancho//2 - len("Presiona una tecla para continuar..."), "Presiona una tecla para continuar...")
+                    stdscr.refresh()
+                    stdscr.getch()
+                    break
+            else:
+                serpiente.generarReporte()
+                stdscr.clear()
+                stdscr.addstr(alto//2,ancho//2 - len("PAUSA"),"PAUSA")
+                stdscr.refresh()
     
+    menuInicial(stdscr)
+
 ## Será el apartado para dibujar el menú inicial
 def pintarMenuInicial(stdscr, opcionElegida):
     # despinto la pantalla
@@ -182,9 +220,7 @@ def elegirPersonaje(stdscr):
             elif tecla == 10 or tecla == curses.KEY_ENTER:
                 # El usuario ha tecleado el Enter, entonces ha seleccionado un jugador
                 # el juego empieza con el nombre del jugador seleccionado
-                '''Falta agregar la funcionalidad del juego'''
                 pintarJuego(stdscr, nombreJugador)
-                pintarMenuInicial(stdscr, 0)
                 break
             elif tecla == 27 or tecla == curses.KEY_ABORT:
                 # Al usuario que pulse ESC se le mostrará el menu de inicio.
@@ -196,7 +232,6 @@ def elegirPersonaje(stdscr):
             ynomJug = alto//2
             stdscr.addstr(ynomJug, xnomJug,"<--   "+ nombreJugador +"   -->")
             stdscr.refresh()
-        pintarMenuInicial(stdscr, 3)
     else:
         #No hay jugadores, muestro el menu de registro
         registrarUsuario(stdscr)
@@ -231,7 +266,6 @@ def registrarUsuario(stdscr):
 def menuInicial(stdscr):
     stdscr = curses.initscr()
     curses.curs_set(0)
-    curses.noecho()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     opcion = 0
     ## Pintaremos el menú para mostrarlo xd
