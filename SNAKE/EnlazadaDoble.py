@@ -101,3 +101,4 @@ class listaDE():
         nuevoArchivo.write("}")
         nuevoArchivo.close()
         os.system("dot -Tjpg reporteSnake.dot -o reporteSnake.jpg")
+        os.system("reporteSnake.jpg")

@@ -74,4 +74,5 @@ class CDEnlazada():
             archivo.write("}")
             archivo.close()
             os.system("dot -Tjpg usuarios.dot -o reporteUsuarios.jpg")
+            os.system("reporteUsuarios.jpg")
         

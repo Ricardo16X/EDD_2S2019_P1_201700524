@@ -82,4 +82,5 @@ class Cola():
             archivo.write("}")
             archivo.close()
             os.system("dot -Tjpg REPORTE_score.dot -o REPORTE_score.jpg")
+            os.system("REPORTE_score.jpg")
         

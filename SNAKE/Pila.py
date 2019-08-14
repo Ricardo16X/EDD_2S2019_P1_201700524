@@ -42,3 +42,4 @@ class Pila():
         archivo.write("\n}")
         archivo.close()
         os.system("dot -Tjpg scoreReport.dot -o score_report.jpg")
+        os.system("score_report.jpg")
