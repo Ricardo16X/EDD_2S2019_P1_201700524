@@ -1,6 +1,7 @@
 import curses
 from curses import textpad
 from random import randint
+import csv
 #Estructuras Importadas
 import CircularDobleEnlazada
 import Pila
@@ -265,7 +266,48 @@ def menuReportes(stdscr):
             # Si el usuario pulsa ESC en el menu inicial, se saldrá del programa
             break
         pintarMenuReportes(stdscr, opcion)
+# Ingreso de archivo .csv
+def llenadoMasivo(stdscr):
+    stdscr.clear()
+    stdscr.addstr(1,1,"Carga Masiva _ Archivos CSV")
+    stdscr.addstr(2,1,"Funcionamiento:")
+    stdscr.addstr(3,1,"Coloca el archivo .csv en la carpeta del juego")
+    stdscr.addstr(4,1,"Escribe el nombre del archivo:")
+    cadenaTexto = ""
+    while True:
+        tecla = stdscr.getkey()
+        stdscr.clear()
+        if tecla is "\n":
+            try:
+                i = 0
+                nNombre = 1
+                archivo = open(cadenaTexto, "r", newline="")
+                for linea in archivo:
+                    dato = linea.split(",\r\n")
+                    dato.append(dato)
+                    for nombre in dato:
+                        if i%3 == 0 and nNombre is not 1:
+                            usuarios.ingresar(nombre)
+                        i = i + 1
+                        nNombre = nNombre + 1
+                break
+            except Exception:
+                stdscr.addstr(0,1,"Ha ocurrido un error, intentalo nuevamente :/")
+        elif tecla is "\x08":
+            cadenaTexto = cadenaTexto[0:len(cadenaTexto) - 1]
+        elif tecla is 27 or tecla is curses.KEY_ABORT:
+            break
+        else:
+            cadenaTexto = cadenaTexto + tecla
+        stdscr.addstr(1,1,"Carga Masiva _ Archivos CSV")
+        stdscr.addstr(2,1,"Funcionamiento:")
+        stdscr.addstr(3,1,"Coloca el archivo .csv en la carpeta del juego")
+        stdscr.addstr(4,1,"Escribe el nombre del archivo:")
+        stdscr.addstr(5,1,cadenaTexto)
+        stdscr.refresh()
+        
 
+    
 ## Servirá para elegir el personaje en el menú seleccionado
 def elegirPersonaje(stdscr):
     #Contamos el numero de jugadores registrados

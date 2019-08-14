@@ -12,3 +12,5 @@ SNAKE/__init__.py
 *.txt
 *.jpg
 *.dot
+SNAKE/*.csv
+*.csv
