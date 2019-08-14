@@ -1,3 +1,4 @@
+import os
 #SCOREBOARD DE USUARIOS
 class nodoCola():
     siguiente = None
@@ -8,12 +9,10 @@ class nodoCola():
         self.siguiente = None
 
 class Cola():
-    ancla = None
-    ultimo = None
-    numeroPunteos = 0
     def __init__(self):
         self.ancla = nodoCola(None, None)
         self.ultimo = None
+        self.numeroPunteos = 0
     
     def push(self,nombre,punteo):
         temporal = self.ancla
@@ -61,5 +60,26 @@ class Cola():
             primero_enCola.siguiente = None
 
     def graficar(self):
-        temporal = self.ancla
-        ## Instrucciones para la graficación
+        if self.numeroPunteos > 0:
+            temporal = self.ancla
+            ## Instrucciones para la graficación
+            archivo = open("REPORTE_score.dot","w")
+            archivo.write("digraph G{\n")
+            archivo.write("rankdir = \"LR\"\n")
+            archivo.write("node [shape=record];\n")
+            archivo.write("nodoF [shape=record, label=\"null\"]\n")
+            numeroNodo = 1
+            while temporal.siguiente is not None:
+                temporal = temporal.siguiente
+                archivo.write("n" + str(numeroNodo) + " [shape=record, label=\"{("+ temporal.nombre + "," + str(temporal.puntuacion) +")}\"]\n")
+                numeroNodo += 1
+            numeroNodo -= 1
+            i = 1
+            while i < numeroNodo:
+                archivo.write("n" + str(i) + " -> " + "n" + str(i + 1) + "\n")
+                i = i + 1
+            archivo.write("n" + str(numeroNodo)  + " -> " + "nodoF \n")
+            archivo.write("}")
+            archivo.close()
+            os.system("dot -Tjpg REPORTE_score.dot -o REPORTE_score.jpg")
+        

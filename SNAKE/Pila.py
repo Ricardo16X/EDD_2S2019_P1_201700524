@@ -1,3 +1,4 @@
+import os
 class nodoPila():
     coordenadaX = 0
     coordenadaY = 0
@@ -27,5 +28,17 @@ class Pila():
         self.ancla.siguiente = None
         
     def graficar(self):
-        #M�todo para graficar y generar el reporte xd
         temporal = self.ancla
+        archivo = open("scoreReport.dot","w")
+        archivo.write("digraph G{\n")
+        archivo.write("rankdir = \"TB\"\n")
+        archivo.write("node [shape = record];\n")
+        cadenaResultado = "n1 [shape=record, label=\"{"
+        while temporal.siguiente is not None:
+            temporal = temporal.siguiente
+            cadenaResultado = cadenaResultado + "|(" + str(temporal.coordenadaX) + "," + str(temporal.coordenadaY) + ")"
+        cadenaResultado = cadenaResultado + "}\"];"
+        archivo.write(cadenaResultado)
+        archivo.write("\n}")
+        archivo.close()
+        os.system("dot -Tjpg scoreReport.dot -o score_report.jpg")

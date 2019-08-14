@@ -75,7 +75,7 @@ class listaDE():
         cadena = ""
         nuevoArchivo.write("nodoI [shape = record, label=\"null\"];\n")
         nuevoArchivo.write("nodoF [shape = record, label=\"null\"];\n")
-        # Creación de los nodos
+        # Creación de los nodos####################
         n = 1
         while temporal.siguiente is not None:
             nodo = "n" + str(n)
@@ -83,7 +83,7 @@ class listaDE():
             cadena = cadena + nodo + " [shape=record, label=\"{|("+ str(temporal.cX) + "," + str(temporal.cY) +")|}\"];\n"
             nuevoArchivo.write(nodo + " [shape=record, label=\"{|("+ str(temporal.cX) + "," + str(temporal.cY) +")|}\"];\n")
             n = n + 1
-            
+        ############################################
         i = 1
         n = n - 1
         # Uso de los nodos

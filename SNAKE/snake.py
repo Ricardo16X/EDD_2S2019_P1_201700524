@@ -1,6 +1,5 @@
 import curses
 from curses import textpad
-import time
 from random import randint
 #Estructuras Importadas
 import CircularDobleEnlazada
@@ -9,10 +8,9 @@ import Cola
 import EnlazadaDoble
 
 menu = ['1. Jugar', '2. Tabla de Punteo', '3. Selección Usuario', '4. Reportes', '5. Carga Masiva']
-
+reportes = ['1. Punteos', '2. Usuarios']
 # Estructuras
-nuevaPila = Pila.Pila()
-nuevaCola = Cola.Cola()
+userScoreReport = Cola.Cola()
 usuarios = CircularDobleEnlazada.CDEnlazada()
 ## Aqui funcionará el juego
 def pintarJuego(stdscr, nombreUsuario):
@@ -20,18 +18,22 @@ def pintarJuego(stdscr, nombreUsuario):
         registrarUsuario(stdscr)
     else:
         serpiente = EnlazadaDoble.listaDE()
+        score = Pila.Pila()
         stdscr.clear()
         velocidad = 150
         punteo = 0
         nivel = 1
+        #Punteo de cambio de nivel
+        pt = 5
+        quitar = 50
         stdscr.timeout(velocidad)
         alto, ancho = stdscr.getmaxyx()
-        stdscr.addstr(1,25 - len("Puntaje"),"Puntaje = " + str(punteo))
-        stdscr.addstr(1,50 - len("Nivel"),"Nivel = " + str(nivel))
-        stdscr.addstr(1,75 - len("Usuario"),"Usuario = " + str(nombreUsuario))
+        stdscr.addstr(1 , 1 ,"Puntaje = " + str(punteo))
+        stdscr.addstr(1 , ancho//2,"Nivel = " + str(nivel))
+        stdscr.addstr(1 , ancho - len("Usuario"),"Usuario = " + str(nombreUsuario))
         randomY = randint(3,alto-3)
         randomX = randint(3,ancho - 4)
-        comidita = "*"
+        comidita = "+"
         stdscr.addstr(randomY, randomX, comidita)
         stdscr.border(0)
         textpad.rectangle(stdscr, 2, 2, alto - 2, ancho - 3)
@@ -53,9 +55,11 @@ def pintarJuego(stdscr, nombreUsuario):
         colision_sinComida = False
         Pausa = False
         while True:
-            if punteo % 15 == 0 and punteo > 0:
+            if punteo == pt and velocidad > 25 and nivel < 3:
                 nivel += 1
-                velocidad -= 50
+                pt = pt + 5
+                velocidad = velocidad - quitar
+                quitar += 40
                 stdscr.timeout(velocidad)
             temporal = serpiente.ancla.siguiente
             tempCX = 0
@@ -87,6 +91,10 @@ def pintarJuego(stdscr, nombreUsuario):
                     Pausa = False
             
             if temporal.cX == randomX and temporal.cY == randomY:
+                ## Agrego los valores a la pila para el score result
+                score.push(randomX, randomY)
+                ## Luego creo el reporte del mismo
+                score.graficar()
                 #################################
                 if comidita is "+":
                     serpiente.insertar(0,0)
@@ -116,21 +124,21 @@ def pintarJuego(stdscr, nombreUsuario):
                 if direccion in [curses.KEY_UP, 450]:
                     # Lo que haré aquí será atravesar la pared
                     # por medio de la cabeza del snake
-                    if temporal.cY <= 2:
+                    if temporal.cY <= 3:
                         temporal.cY = alto-3
                     else:
                         tempCX = temporal.cX
                         tempCY = temporal.cY
                         temporal.cY -= 1
                 elif direccion in [curses.KEY_DOWN, 456]:
-                    if temporal.cY >= alto - 2:
+                    if temporal.cY >= alto - 3:
                         temporal.cY = 3
                     else:
                         tempCX = temporal.cX
                         tempCY = temporal.cY
                         temporal.cY += 1    
                 elif direccion in [curses.KEY_LEFT, 452]:
-                    if temporal.cX <= 2:
+                    if temporal.cX <= 3:
                         temporal.cX = ancho - 4
                     else:
                         tempCX = temporal.cX
@@ -159,6 +167,7 @@ def pintarJuego(stdscr, nombreUsuario):
                     colision_sinComida = serpiente.colision(True)
                 else:
                     serpiente.generarReporte()
+                    userScoreReport.push(nombreUsuario,punteo)
                     serpiente.cantidad = 0
                     punteo = 0
                     serpiente.vaciarSerpiente()
@@ -175,9 +184,26 @@ def pintarJuego(stdscr, nombreUsuario):
                 stdscr.clear()
                 stdscr.addstr(alto//2,ancho//2 - len("PAUSA"),"PAUSA")
                 stdscr.refresh()
-    
-    menuInicial(stdscr)
-
+## Mostraremos el Score actual en tabla
+def mostrarTablaPuntaje(stdscr):
+    stdscr.clear()
+    stdscr.border(0)
+    alto, ancho = stdscr.getmaxyx()
+    temporal = userScoreReport
+    temporalito = userScoreReport.ancla
+    if temporal.numeroPunteos > 0:
+        y = 5
+        stdscr.addstr(y, ancho//4, "Nombre")
+        stdscr.addstr(y, ancho//2, "Punteo")
+        while temporalito.siguiente is not None:
+            y = y + 1
+            temporalito = temporalito.siguiente
+            stdscr.addstr(y, ancho//4, temporalito.nombre)
+            stdscr.addstr(y, ancho//2, str(temporalito.puntuacion))
+    else:
+        stdscr.addstr(alto//2, ancho//2 - len("NO HAY PUNTEOS QUE MOSTRAR"), "NO HAY PUNTEOS QUE MOSTRAR")
+    stdscr.refresh()
+    stdscr.getch()
 ## Será el apartado para dibujar el menú inicial
 def pintarMenuInicial(stdscr, opcionElegida):
     # despinto la pantalla
@@ -195,6 +221,51 @@ def pintarMenuInicial(stdscr, opcionElegida):
             stdscr.addstr(y,x,fila)
         stdscr.addstr(1,1,"ESC Salir")
         stdscr.refresh()
+def pintarMenuReportes(stdscr, opcionElegida):
+    # despinto la pantalla
+    stdscr.clear()
+    # Obtenemos el tamaño máximo de la pantalla
+    alto, ancho = stdscr.getmaxyx()
+    for index, fila in enumerate(reportes):
+        x = ancho//2 - 20
+        y = alto//2 - len(reportes)//2 + index
+        if(opcionElegida == index):
+            stdscr.attron(curses.color_pair(1))
+            stdscr.addstr(y,x,fila)
+            stdscr.attroff(curses.color_pair(1))
+        else:
+            stdscr.addstr(y,x,fila)
+    stdscr.addstr(2,2,"ESC Salir")
+    stdscr.addstr(alto//2 - 5, ancho//2 - len("REPORTES"), "REPORTES")
+    stdscr.refresh()
+## Pintar menu de repotes
+def menuReportes(stdscr):
+    stdscr.border(0)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    opcion = 0
+    pintarMenuReportes(stdscr, opcion)
+    while True:
+        tecla = stdscr.getch()
+        if tecla == 450 or tecla == curses.KEY_UP and opcion > 0:
+            opcion -= 1
+        elif tecla == 456 or tecla == curses.KEY_DOWN and opcion < len(reportes) - 1:
+            opcion += 1
+        elif tecla == 10 or tecla == curses.KEY_ENTER:
+            ## Limpiaremos primero la pantalla para mostrar el siguiente
+            stdscr.clear()
+            ## Aqui reconocemos que el usuario ha pulsado enter
+            # Por lo tanto veremos en que "opcion" hizo enter
+            if opcion is 0:
+                # Mostraremos el juego como tal
+                userScoreReport.graficar()
+            elif opcion is 1:
+                # Mostraremos la tabla de puntaje
+                usuarios.graficar()
+        elif tecla == 27 or tecla == curses.KEY_ABORT:
+            # Si el usuario pulsa ESC en el menu inicial, se saldrá del programa
+            break
+        pintarMenuReportes(stdscr, opcion)
+
 ## Servirá para elegir el personaje en el menú seleccionado
 def elegirPersonaje(stdscr):
     #Contamos el numero de jugadores registrados
@@ -207,14 +278,15 @@ def elegirPersonaje(stdscr):
         y = alto//2 - 2
         stdscr.addstr(1,1,"ESC Salir")
         stdscr.addstr(y,x,"Elige tu Nombre")
+        stdscr.addstr(y + 1,x - len(usuarios.ancla.siguiente.nombre),"<--   " + usuarios.ancla.siguiente.nombre + "   -->")
         # While para que sea mientras presione un boton
         while True:
             tecla = stdscr.getch()
             stdscr.clear()
-            if tecla == curses.KEY_LEFT or tecla == 452:
+            if tecla == curses.KEY_LEFT or tecla == 452 or tecla == curses.KEY_UP or tecla == 450:
                 # Pediré el usuario que está a la izquierda o sea al anterior del actual y lo mostraré en pantalla
                 nombreJugador = usuarios.jugador("L")
-            elif tecla == curses.KEY_RIGHT or tecla == 454:
+            elif tecla == curses.KEY_RIGHT or tecla == 454 or tecla == curses.KEY_DOWN or tecla == 456:
                 # Pediré el usuario que está a la derecha o siguiente del actual
                 nombreJugador = usuarios.jugador("R")
             elif tecla == 10 or tecla == curses.KEY_ENTER:
@@ -236,6 +308,8 @@ def elegirPersonaje(stdscr):
         #No hay jugadores, muestro el menu de registro
         registrarUsuario(stdscr)
 
+
+        # Menu para registrar un usuario
 def registrarUsuario(stdscr):
     stdscr.clear()
     alto, ancho = stdscr.getmaxyx()
