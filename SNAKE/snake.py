@@ -305,9 +305,6 @@ def llenadoMasivo(stdscr):
         stdscr.addstr(4,1,"Escribe el nombre del archivo:")
         stdscr.addstr(5,1,cadenaTexto)
         stdscr.refresh()
-        
-
-    
 ## Servirá para elegir el personaje en el menú seleccionado
 def elegirPersonaje(stdscr):
     #Contamos el numero de jugadores registrados
@@ -372,7 +369,7 @@ def registrarUsuario(stdscr):
             ynom = alto//2 + 2
             stdscr.addstr(ynom,xnom,nombreIngresado)
             stdscr.refresh()
-        else:
+        elif tecla is "\n":
             ## Vamos a registrar el nombre ingresado por el usuario
             usuarios.ingresar(nombreIngresado)
             pintarJuego(stdscr, nombreIngresado)
