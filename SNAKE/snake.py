@@ -269,10 +269,11 @@ def menuReportes(stdscr):
 # Ingreso de archivo .csv
 def llenadoMasivo(stdscr):
     stdscr.clear()
-    stdscr.addstr(1,1,"Carga Masiva _ Archivos CSV")
-    stdscr.addstr(2,1,"Funcionamiento:")
-    stdscr.addstr(3,1,"Coloca el archivo .csv en la carpeta del juego")
-    stdscr.addstr(4,1,"Escribe el nombre del archivo:")
+    stdscr.addstr(1,1, "ESC - Salir")
+    stdscr.addstr(2,1,"Carga Masiva _ Archivos CSV")
+    stdscr.addstr(3,1,"Funcionamiento:")
+    stdscr.addstr(4,1,"Coloca el archivo .csv en la carpeta del juego")
+    stdscr.addstr(5,1,"Escribe el nombre del archivo:")
     cadenaTexto = ""
     while True:
         tecla = stdscr.getkey()
@@ -292,18 +293,21 @@ def llenadoMasivo(stdscr):
                         nNombre = nNombre + 1
                 break
             except Exception:
+                stdscr.attron(curses.color_pair(1))
                 stdscr.addstr(0,1,"Ha ocurrido un error, intentalo nuevamente :/")
+                stdscr.attroff(curses.color_pair(1))
         elif tecla is "\x08":
             cadenaTexto = cadenaTexto[0:len(cadenaTexto) - 1]
-        elif tecla is 27 or tecla is curses.KEY_ABORT:
+        elif tecla is "\x1b":
             break
         else:
             cadenaTexto = cadenaTexto + tecla
-        stdscr.addstr(1,1,"Carga Masiva _ Archivos CSV")
-        stdscr.addstr(2,1,"Funcionamiento:")
-        stdscr.addstr(3,1,"Coloca el archivo .csv en la carpeta del juego")
-        stdscr.addstr(4,1,"Escribe el nombre del archivo:")
-        stdscr.addstr(5,1,cadenaTexto)
+        stdscr.addstr(1,1, "ESC - Salir")
+        stdscr.addstr(2,1,"Carga Masiva _ Archivos CSV")
+        stdscr.addstr(3,1,"Funcionamiento:")
+        stdscr.addstr(4,1,"Coloca el archivo .csv en la carpeta del juego")
+        stdscr.addstr(5,1,"Escribe el nombre del archivo:")
+        stdscr.addstr(6,1,cadenaTexto)
         stdscr.refresh()
 ## Servirá para elegir el personaje en el menú seleccionado
 def elegirPersonaje(stdscr):
@@ -360,7 +364,16 @@ def registrarUsuario(stdscr):
     # un While para pedir los caracteres del nombre
     while True:
         tecla = stdscr.getkey()
-        if tecla is not "\n":
+        if tecla is "\x08":
+            nombreIngresado = nombreIngresado[0:len(nombreIngresado) - 1]
+        if tecla is "\n":
+            ## Vamos a registrar el nombre ingresado por el usuario
+            usuarios.ingresar(nombreIngresado)
+            pintarJuego(stdscr, nombreIngresado)
+            break
+        elif tecla is "\x1b":
+            break
+        else:
             stdscr.clear()
             # Voy a mostrar un mensaje que me pida el nombre
             stdscr.addstr(y, x, "Ingresa tu Nombre:")
@@ -369,11 +382,6 @@ def registrarUsuario(stdscr):
             ynom = alto//2 + 2
             stdscr.addstr(ynom,xnom,nombreIngresado)
             stdscr.refresh()
-        elif tecla is "\n":
-            ## Vamos a registrar el nombre ingresado por el usuario
-            usuarios.ingresar(nombreIngresado)
-            pintarJuego(stdscr, nombreIngresado)
-            break
 ## Inicio de juego de verdad
 ## Primero comenzaré con el diseño del Menú Inicial
 def menuInicial(stdscr):
